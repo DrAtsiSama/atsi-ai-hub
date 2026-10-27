@@ -63,11 +63,18 @@ services:
       NODE_ENV: production
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+      ATSI_DB_HOST: postgres
+      ATSI_DB_PORT: "5432"
+      ATSI_DB_NAME: ${ATSI_DB_NAME:?Database name required}
+      ATSI_DB_USER: ${ATSI_DB_USER:?Database user required}
+      ATSI_DB_PASSWORD: ${ATSI_DB_PASSWORD:?Database password required}
     volumes:
       - ./services/agent-worker:/workspace/services/agent-worker:ro
     mem_limit: 256m
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
 
 volumes:

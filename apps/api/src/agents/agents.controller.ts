@@ -14,4 +14,13 @@ export class AgentsController {
   getJob(@Param('id') id: string) {
     return this.agentsService.getJob(id);
   }
+    @Get('history')
+  getHistory() {
+    return this.agentsService.getHistory();
+  }
+
+  @Get('history/:id')
+  getHistoryById(@Param('id') id: string) {
+    return this.agentsService.getHistoryById(id);
+  }
 }
