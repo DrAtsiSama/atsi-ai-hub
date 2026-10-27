@@ -7,19 +7,54 @@ services:
     entrypoint: ["/bin/sh"]
     stdin_open: true
     tty: true
-
     volumes:
       - ./:/workspace
       - npm-cache:/root/.npm
-
     environment:
       NODE_ENV: development
       NPM_CONFIG_UPDATE_NOTIFIER: "false"
-
     mem_limit: 2g
-
     profiles:
       - tools
 
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${ATSI_DB_NAME:?Database name required}
+      POSTGRES_USER: ${ATSI_DB_USER:?Database user required}
+      POSTGRES_PASSWORD: ${ATSI_DB_PASSWORD:?Database password required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 128mb
+      - --maxmemory-policy
+      - noeviction
+    volumes:
+      - redis-data:/data
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   npm-cache:
+  postgres-data:
+  redis-data:

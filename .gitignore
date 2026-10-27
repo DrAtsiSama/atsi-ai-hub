@@ -40,3 +40,8 @@ docker-compose.override.yml
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Local environment secrets
+.env
+.env.*
+!.env.example
