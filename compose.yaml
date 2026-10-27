@@ -1,0 +1,25 @@
+name: atsi-ai-hub
+
+services:
+  dev:
+    image: node:24-bookworm-slim
+    working_dir: /workspace
+    entrypoint: ["/bin/sh"]
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - ./:/workspace
+      - npm-cache:/root/.npm
+
+    environment:
+      NODE_ENV: development
+      NPM_CONFIG_UPDATE_NOTIFIER: "false"
+
+    mem_limit: 2g
+
+    profiles:
+      - tools
+
+volumes:
+  npm-cache:
