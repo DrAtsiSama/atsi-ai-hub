@@ -1,3 +1,4 @@
+import { configureApp } from '../src/configure-app.js';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
@@ -31,6 +32,7 @@ describe('Protection HTTP des agents', () => {
       .compile();
 
     app = moduleRef.createNestApplication();
+    configureApp(app);
     await app.init();
   });
 
@@ -39,10 +41,10 @@ describe('Protection HTTP des agents', () => {
   });
 
   const routes = [
-    { method: 'post', path: '/agents/demo/run' },
-    { method: 'get', path: '/agents/jobs/job-test' },
-    { method: 'get', path: '/agents/history' },
-    { method: 'get', path: '/agents/history/history-test' },
+    { method: 'post', path: '/api/agents/demo/run' },
+    { method: 'get', path: '/api/agents/jobs/job-test' },
+    { method: 'get', path: '/api/agents/history' },
+    { method: 'get', path: '/api/agents/history/history-test' },
   ] as const;
 
   for (const route of routes) {
@@ -85,7 +87,7 @@ describe('Protection HTTP des agents', () => {
     getSessionUser.mockResolvedValue(null);
 
     const response = await request(app.getHttpServer())
-      .get('/agents/history')
+      .get('/api/agents/history')
       .set('Cookie', cookie);
 
     expect(response.status).toBe(401);

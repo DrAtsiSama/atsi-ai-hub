@@ -1,0 +1,48 @@
+services:
+  api-dev:
+    image: node:24-bookworm-slim
+    working_dir: /workspace/apps/api
+    command:
+      - /bin/sh
+      - -c
+      - npm run start:dev
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      ATSI_ALLOWED_ORIGIN: "http://localhost:4200"
+      ATSI_DB_HOST: postgres
+      ATSI_DB_PORT: "5432"
+      ATSI_DB_NAME: ${ATSI_DB_NAME:?Database name required}
+      ATSI_DB_USER: ${ATSI_DB_USER:?Database user required}
+      ATSI_DB_PASSWORD: ${ATSI_DB_PASSWORD:?Database password required}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    volumes:
+      - ./:/workspace
+    mem_limit: 512m
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - development
+
+  web-dev:
+    image: node:24-bookworm-slim
+    working_dir: /workspace/apps/web
+    command:
+      - /bin/sh
+      - -c
+      - npm run start -- --host 0.0.0.0 --port 4200 --proxy-config proxy.conf.json
+    environment:
+      NODE_ENV: development
+    ports:
+      - "127.0.0.1:4200:4200"
+    volumes:
+      - ./:/workspace
+    mem_limit: 1g
+    depends_on:
+      - api-dev
+    profiles:
+      - development

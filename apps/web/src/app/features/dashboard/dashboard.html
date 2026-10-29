@@ -1,0 +1,28 @@
+<main class="dashboard">
+  <header class="dashboard-header">
+    <div>
+      <h1>ATSI AI HUB</h1>
+      <p>Administration des agents IA</p>
+    </div>
+
+    <button
+      type="button"
+      (click)="logout()"
+      [disabled]="loggingOut()"
+    >
+      {{ loggingOut() ? 'Déconnexion...' : 'Se déconnecter' }}
+    </button>
+  </header>
+
+  <section class="welcome">
+    <h2>Bienvenue dans votre espace administrateur</h2>
+    <p>
+      Votre session est active. Vous pourrez prochainement
+      piloter les agents et consulter leurs exécutions.
+    </p>
+
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+  </section>
+</main>

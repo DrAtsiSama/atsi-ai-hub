@@ -1,3 +1,4 @@
+import { configureApp } from '../src/configure-app.js';
 import { Test } from '@nestjs/testing';
 import { INestApplication, UnauthorizedException } from '@nestjs/common';
 import request from 'supertest';
@@ -58,6 +59,7 @@ describe('Sécurité globale HTTP', () => {
       .compile();
 
     app = moduleRef.createNestApplication();
+    configureApp(app);
     await app.init();
   });
 
@@ -83,7 +85,7 @@ describe('Sécurité globale HTTP', () => {
 
   it('refuse un POST provenant d une origine non autorisée', async () => {
     const response = await request(app.getHttpServer())
-      .post('/agents/demo/run')
+      .post('/api/agents/demo/run')
       .set('Origin', 'https://origine-inconnue.example')
       .set('Cookie', cookie)
       .send({ instruction: 'test' });
@@ -95,7 +97,7 @@ describe('Sécurité globale HTTP', () => {
 
   it('refuse un POST sans session avec une origine autorisée', async () => {
     const response = await request(app.getHttpServer())
-      .post('/agents/demo/run')
+      .post('/api/agents/demo/run')
       .set('Origin', allowedOrigin)
       .send({ instruction: 'test' });
 
@@ -105,7 +107,7 @@ describe('Sécurité globale HTTP', () => {
 
   it('autorise un POST avec origine et session valides', async () => {
     const response = await request(app.getHttpServer())
-      .post('/agents/demo/run')
+      .post('/api/agents/demo/run')
       .set('Origin', allowedOrigin)
       .set('Cookie', cookie)
       .send({ instruction: 'test' });
@@ -121,7 +123,7 @@ describe('Sécurité globale HTTP', () => {
     );
 
     const response = await request(app.getHttpServer())
-      .get('/agents/history')
+      .get('/api/agents/history')
       .set('Cookie', cookie);
 
     expect(response.status).toBe(401);
@@ -130,7 +132,7 @@ describe('Sécurité globale HTTP', () => {
 
   it('laisse la route publique accessible sans session', async () => {
     const response = await request(app.getHttpServer())
-      .get('/health');
+      .get('/api/health');
 
     expect(response.status).toBe(200);
   });

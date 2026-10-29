@@ -1,3 +1,4 @@
+import { configureApp } from '../src/configure-app.js';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
@@ -13,12 +14,13 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureApp(app);
     await app.init();
   });
 
   it('/ (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api/')
       .expect(200)
       .expect('Hello World!');
   });

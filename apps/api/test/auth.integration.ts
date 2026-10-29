@@ -1,3 +1,4 @@
+import { configureApp } from '../src/configure-app.js';
 import { Test } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
@@ -21,13 +22,14 @@ describe('Authentification administrateur réelle', () => {
 
     const app: INestApplication = moduleRef.createNestApplication();
 
+    configureApp(app);
     await app.init();
 
     try {
       const server = app.getHttpServer();
 
       const login = await request(server)
-        .post('/auth/login')
+        .post('/api/auth/login')
         .set('Origin', 'http://localhost:3000')
         .send({ username, password });
 
@@ -43,20 +45,20 @@ describe('Authentification administrateur réelle', () => {
       const sessionCookie = cookieHeader.split(';')[0];
 
       const me = await request(server)
-        .get('/auth/me')
+        .get('/api/auth/me')
         .set('Cookie', sessionCookie);
 
       expect(me.status).toBe(200);
 
       const logout = await request(server)
-        .post('/auth/logout')
+        .post('/api/auth/logout')
         .set('Origin', 'http://localhost:3000')
         .set('Cookie', sessionCookie);
 
       expect(logout.status).toBe(201);
 
       const afterLogout = await request(server)
-        .get('/auth/me')
+        .get('/api/auth/me')
         .set('Cookie', sessionCookie);
 
       expect(afterLogout.status).toBe(401);
