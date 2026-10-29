@@ -1,7 +1,16 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AdminAuthGuard } from '../auth/admin-auth.guard.js';
 import { AgentsService } from './agents.service.js';
 
 @Controller('agents')
+@UseGuards(AdminAuthGuard)
 export class AgentsController {
   constructor(private readonly agentsService: AgentsService) {}
 
@@ -14,7 +23,8 @@ export class AgentsController {
   getJob(@Param('id') id: string) {
     return this.agentsService.getJob(id);
   }
-    @Get('history')
+
+  @Get('history')
   getHistory() {
     return this.agentsService.getHistory();
   }
