@@ -6,6 +6,7 @@ import {
   AgentExecution,
   AgentHistoryResponse,
   AgentJobResponse,
+  AgentRunResponse,
 } from './agents.models';
 
 @Injectable({
@@ -14,6 +15,15 @@ import {
 export class AgentsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = '/api/agents';
+
+
+  runDemo(instruction: string): Observable<AgentRunResponse> {
+    return this.http.post<AgentRunResponse>(
+      `${this.apiUrl}/demo/run`,
+      { instruction },
+      { withCredentials: true },
+    );
+  }
 
   getHistory(): Observable<AgentHistoryResponse> {
     return this.http.get<AgentHistoryResponse>(

@@ -61,7 +61,87 @@
       </article>
     </section>
 
-    <section class="history">
+      <section class="agent-run-panel">
+        <h2>Déclencher un agent</h2>
+        <p>Envoyer une instruction au demo-agent.</p>
+
+        <label for="agent-instruction">Instruction</label>
+
+        <textarea
+          id="agent-instruction"
+          rows="4"
+          maxlength="2000"
+          [ngModel]="instruction()"
+          (ngModelChange)="instruction.set($event)"
+          [disabled]="submittingRun() || confirmingRun()"
+          placeholder="Exemple : Tester une exécution depuis le dashboard"
+        ></textarea>
+
+        <p class="character-count">
+          {{ instruction().length }} / 2000 caractères
+        </p>
+
+        <button
+          type="button"
+          (click)="prepareRun()"
+          [disabled]="submittingRun() || confirmingRun() || !instruction().trim()"
+        >
+          {{ submittingRun() ? 'Envoi en cours...' : "Lancer l'agent" }}
+        </button>
+
+        @if (runMessage()) {
+          <p class="run-success" role="status">{{ runMessage() }}</p>
+        }
+
+        @if (runError()) {
+          <p class="run-error" role="alert">{{ runError() }}</p>
+        }
+
+        @if (confirmingRun()) {
+          <div class="run-confirmation">
+            <h3>Confirmer le lancement</h3>
+            <p>Cette action va créer une nouvelle exécution du demo-agent.</p>
+
+            <div class="confirmation-actions">
+              <button type="button" (click)="cancelRun()">
+                Annuler
+              </button>
+
+              <button type="button" (click)="confirmRun()">
+                Confirmer le lancement
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+
+    <section class="agent-tracking" aria-live="polite">
+        @if (trackedJobId()) {
+          <h3>Suivi de l'exécution</h3>
+
+          <p>
+            <strong>Identifiant de tâche :</strong>
+            <code>{{ trackedJobId() }}</code>
+          </p>
+
+          <p>
+            <strong>Statut :</strong>
+            {{ statusLabel(trackedJobStatus()) }}
+          </p>
+
+          @if (trackingActive()) {
+            <p>Actualisation automatique toutes les 2 secondes...</p>
+          }
+
+          @if (trackingError()) {
+            <p class="run-error" role="alert">
+              {{ trackingError() }}
+            </p>
+          }
+        }
+      </section>
+
+      <section class="history">
       <h3>Dernières exécutions</h3>
 
       @if (loading() && !historyLoaded()) {

@@ -23,3 +23,9 @@ export interface AgentJobResponse {
   result: unknown | null;
   error: string | null;
 }
+
+export interface AgentRunResponse {
+  runId: string;
+  jobId: string;
+  status: string;
+}

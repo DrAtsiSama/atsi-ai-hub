@@ -209,3 +209,100 @@ td {
     padding: 24px 16px;
   }
 }
+
+.agent-run-panel {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #111827;
+
+  h2 {
+    margin-top: 0;
+  }
+
+  label {
+    display: block;
+    margin: 1rem 0 0.5rem;
+    font-weight: 600;
+  }
+
+  textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.85rem;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #f8fafc;
+    font: inherit;
+    resize: vertical;
+
+    &:focus {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+  }
+
+  button {
+    padding: 0.7rem 1rem;
+    border: 0;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font: inherit;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.character-count {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.run-success {
+  color: #86efac;
+  overflow-wrap: anywhere;
+}
+
+.run-error {
+  color: #fca5a5;
+}
+
+.run-confirmation {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #64748b;
+  border-radius: 8px;
+  background: #1e293b;
+}
+
+.confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.agent-tracking {
+  margin: 1rem 0;
+  padding: 1.25rem;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #111827;
+
+  h3 {
+    margin-top: 0;
+  }
+
+  code {
+    overflow-wrap: anywhere;
+    color: #93c5fd;
+  }
+}
