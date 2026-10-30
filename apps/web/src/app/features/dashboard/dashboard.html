@@ -14,15 +14,99 @@
     </button>
   </header>
 
-  <section class="welcome">
-    <h2>Bienvenue dans votre espace administrateur</h2>
-    <p>
-      Votre session est active. Vous pourrez prochainement
-      piloter les agents et consulter leurs exécutions.
-    </p>
+  <div class="dashboard-content">
+    <section class="intro">
+      <div>
+        <h2>Tableau de bord</h2>
+        <p>Suivi des 50 dernières exécutions d'agents.</p>
+      </div>
+
+      <button
+        type="button"
+        class="refresh-button"
+        (click)="loadHistory()"
+        [disabled]="loading()"
+      >
+        {{ loading() ? 'Chargement...' : 'Actualiser' }}
+      </button>
+    </section>
 
     @if (error()) {
       <p class="error" role="alert">{{ error() }}</p>
     }
-  </section>
+
+    @if (historyError()) {
+      <p class="error" role="alert">{{ historyError() }}</p>
+    }
+
+    <section class="stats" aria-label="Indicateurs des exécutions">
+      <article class="stat-card">
+        <span>Exécutions récentes</span>
+        <strong>{{ total() }}</strong>
+      </article>
+
+      <article class="stat-card">
+        <span>Réussies</span>
+        <strong class="success">{{ completed() }}</strong>
+      </article>
+
+      <article class="stat-card">
+        <span>En attente / en cours</span>
+        <strong class="pending">{{ active() }}</strong>
+      </article>
+
+      <article class="stat-card">
+        <span>Échecs</span>
+        <strong class="danger">{{ failed() }}</strong>
+      </article>
+    </section>
+
+    <section class="history">
+      <h3>Dernières exécutions</h3>
+
+      @if (loading() && !historyLoaded()) {
+        <p class="empty">Chargement de l'historique...</p>
+      } @else if (historyLoaded() && total() === 0) {
+        <p class="empty">
+          Aucune exécution enregistrée pour le moment.
+        </p>
+      } @else if (total() > 0) {
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Instruction</th>
+                <th>Statut</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (execution of executions(); track execution.id) {
+                <tr>
+                  <td>{{ execution.agent_name }}</td>
+                  <td class="instruction">
+                    {{ execution.instruction }}
+                  </td>
+                  <td>
+                    <span
+                      class="status"
+                      [class.status-success]="execution.status === 'completed'"
+                      [class.status-danger]="execution.status === 'failed'"
+                      [class.status-pending]="execution.status !== 'completed' && execution.status !== 'failed'"
+                    >
+                      {{ statusLabel(execution.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    {{ execution.created_at | date:'dd/MM/yyyy HH:mm' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
 </main>
