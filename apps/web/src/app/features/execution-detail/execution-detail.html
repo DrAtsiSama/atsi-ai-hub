@@ -1,0 +1,93 @@
+<main class="execution-detail">
+  <header class="detail-header">
+    <a routerLink="/dashboard">← Retour au dashboard</a>
+    <h1>Détail d'une exécution</h1>
+    <p>Consultation des informations enregistrées par ATSI AI Hub.</p>
+  </header>
+
+  @if (loading()) {
+    <p role="status">Chargement de l'exécution...</p>
+  } @else if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  } @else if (execution(); as run) {
+    <article class="detail-card">
+      <div class="detail-title">
+        <h2>{{ run.agent_name }}</h2>
+        <span
+          class="status"
+          [class.status-success]="run.status === 'completed'"
+          [class.status-danger]="run.status === 'failed'"
+          [class.status-pending]="run.status !== 'completed' && run.status !== 'failed'"
+        >
+          {{ statusLabel(run.status) }}
+        </span>
+      </div>
+
+      <section class="detail-section">
+        <h3>Informations générales</h3>
+
+        <dl class="detail-grid">
+          <div>
+            <dt>Identifiant d'exécution</dt>
+            <dd><code>{{ run.id }}</code></dd>
+          </div>
+
+          <div>
+            <dt>Identifiant de tâche BullMQ</dt>
+            <dd><code>{{ run.job_id ?? 'Non disponible' }}</code></dd>
+          </div>
+
+          <div>
+            <dt>Création</dt>
+            <dd>{{ run.created_at | date:'dd/MM/yyyy HH:mm:ss' }}</dd>
+          </div>
+
+          <div>
+            <dt>Début</dt>
+            <dd>
+              {{ run.started_at
+                ? (run.started_at | date:'dd/MM/yyyy HH:mm:ss')
+                : 'Non disponible' }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Fin</dt>
+            <dd>
+              {{ run.completed_at
+                ? (run.completed_at | date:'dd/MM/yyyy HH:mm:ss')
+                : 'Non disponible' }}
+            </dd>
+          </div>
+
+          <div>
+            <dt>Durée d'exécution</dt>
+            <dd>{{ duration(run.started_at, run.completed_at) }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="detail-section">
+        <h3>Instruction</h3>
+        <pre>{{ run.instruction }}</pre>
+      </section>
+
+      <section class="detail-section">
+        <h3>Résultat</h3>
+
+        @if (run.result !== null) {
+          <pre>{{ run.result | json }}</pre>
+        } @else {
+          <p class="empty">Aucun résultat disponible.</p>
+        }
+      </section>
+
+      @if (run.error_message) {
+        <section class="detail-section">
+          <h3>Erreur d'exécution</h3>
+          <pre class="error">{{ run.error_message }}</pre>
+        </section>
+      }
+    </article>
+  }
+</main>

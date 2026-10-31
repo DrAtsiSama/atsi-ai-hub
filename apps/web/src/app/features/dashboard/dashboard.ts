@@ -2,7 +2,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Subject, catchError, EMPTY, finalize, interval, startWith, switchMap, take, takeUntil, timer } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -11,7 +11,7 @@ import { AgentExecution } from '../../core/agents/agents.models';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

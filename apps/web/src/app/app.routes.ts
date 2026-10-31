@@ -3,6 +3,8 @@ import { adminGuard } from './core/auth/admin.guard';
 import { Login } from './features/login/login';
 import { Dashboard } from './features/dashboard/dashboard';
 
+import { ExecutionDetail } from './features/execution-detail/execution-detail';
+
 export const routes: Routes = [
   {
     path: '',
@@ -11,6 +13,11 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: Dashboard,
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'dashboard/executions/:id',
+    component: ExecutionDetail,
     canActivate: [adminGuard],
   },
   {
