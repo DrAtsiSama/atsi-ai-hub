@@ -6,6 +6,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { AgentsModule } from '../src/agents/agents.module.js';
 import { AgentsService } from '../src/agents/agents.service.js';
 import { AuthService } from '../src/auth/auth.service.js';
+import { DatabaseModule } from '../src/database/database.module.js';
+import { DatabaseService } from '../src/database/database.service.js';
 
 describe('Protection HTTP des agents', () => {
   let app: INestApplication;
@@ -23,12 +25,14 @@ describe('Protection HTTP des agents', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AgentsModule],
+      imports: [DatabaseModule, AgentsModule],
     })
       .overrideProvider(AuthService)
       .useValue({ getSessionUser })
       .overrideProvider(AgentsService)
       .useValue(agentsService)
+      .overrideProvider(DatabaseService)
+      .useValue({ query: vi.fn() })
       .compile();
 
     app = moduleRef.createNestApplication();

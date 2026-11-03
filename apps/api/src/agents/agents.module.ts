@@ -3,10 +3,11 @@ import { AuthModule } from '../auth/auth.module.js';
 import { AdminAuthGuard } from '../auth/admin-auth.guard.js';
 import { AgentsController } from './agents.controller.js';
 import { AgentsService } from './agents.service.js';
+import { AgentRegistryService } from './agent-registry.service.js';
 
 @Module({
   imports: [AuthModule],
   controllers: [AgentsController],
-  providers: [AgentsService, AdminAuthGuard],
+  providers: [AgentsService, AgentRegistryService, AdminAuthGuard],
 })
 export class AgentsModule {}
