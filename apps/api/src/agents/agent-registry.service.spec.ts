@@ -162,6 +162,37 @@ describe('AgentRegistryService', () => {
     expect(agent).toBeNull();
   });
 
+  it('finds an agent by its UUID', async () => {
+    const { service, query } = createService([agentRow]);
+
+    const agent = await service.findById(agentRow.id);
+
+    expect(agent).toMatchObject({
+      id: agentRow.id,
+      key: 'demo-agent',
+      configVersion: 1,
+      requiresApproval: false,
+      createdAt: '2026-11-03T12:00:00.000Z',
+    });
+
+    expect(query).toHaveBeenCalledOnce();
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE id = $1'),
+      [agentRow.id],
+    );
+  });
+
+  it('returns null when the agent UUID does not exist', async () => {
+    const { service, query } = createService([]);
+
+    const agent = await service.findById(
+      '00000000-0000-4000-8000-000000000099',
+    );
+
+    expect(agent).toBeNull();
+    expect(query).toHaveBeenCalledOnce();
+  });
+
   it('returns an empty list when no agents are registered', async () => {
     const { service } = createService([]);
 

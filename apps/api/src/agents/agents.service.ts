@@ -8,6 +8,7 @@ import {
 import { randomUUID } from 'node:crypto';
 import { Job, Queue } from 'bullmq';
 import { DatabaseService } from '../database/database.service.js';
+import { AgentExecutionPolicyService } from './agent-execution-policy.service.js';
 
 @Injectable()
 export class AgentsService implements OnModuleDestroy {
@@ -24,7 +25,17 @@ export class AgentsService implements OnModuleDestroy {
     },
   });
 
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly executionPolicy: AgentExecutionPolicyService,
+  ) {}
+
+  async prepareRegisteredAgent(
+    agentId: string,
+    capability: string,
+  ) {
+    return this.executionPolicy.prepare(agentId, capability);
+  }
 
   async runDemo(instruction: unknown) {
     if (typeof instruction !== 'string' || !instruction.trim()) {

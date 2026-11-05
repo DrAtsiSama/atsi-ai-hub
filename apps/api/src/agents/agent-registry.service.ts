@@ -116,6 +116,17 @@ export class AgentRegistryService {
     return row ? this.toStoredAgent(row) : null;
   }
 
+  async findById(id: string): Promise<StoredAgent | null> {
+    const result = await this.database.query<AgentRow>(
+      `SELECT * FROM agents WHERE id = $1 LIMIT 1`,
+      [id],
+    );
+
+    const row = result.rows[0];
+
+    return row ? this.toStoredAgent(row) : null;
+  }
+
   private toStoredAgent(row: AgentRow): StoredAgent {
     return {
       id: row.id,
