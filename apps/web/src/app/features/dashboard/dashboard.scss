@@ -3,13 +3,11 @@
   min-height: 100vh;
   font-family: Inter, system-ui, sans-serif;
 }
-
 .dashboard {
   min-height: 100vh;
   background: #0f172a;
   color: #f8fafc;
 }
-
 .dashboard-header {
   display: flex;
   align-items: center;
@@ -46,13 +44,11 @@
     }
   }
 }
-
 .dashboard-content {
   max-width: 1250px;
   margin: 0 auto;
   padding: 40px 24px;
 }
-
 .intro {
   display: flex;
   justify-content: space-between;
@@ -70,7 +66,6 @@
     color: #94a3b8;
   }
 }
-
 .refresh-button {
   padding: 10px 18px;
   border: 1px solid #475569;
@@ -84,14 +79,12 @@
     cursor: not-allowed;
   }
 }
-
 .stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 32px;
 }
-
 .stat-card {
   padding: 24px;
   border: 1px solid #334155;
@@ -109,20 +102,16 @@
     font-size: 34px;
   }
 }
-
 .success {
   color: #4ade80;
 }
-
 .pending {
   color: #facc15;
 }
-
 .danger,
 .error {
   color: #fca5a5;
 }
-
 .history {
   padding: 24px;
   border: 1px solid #334155;
@@ -134,7 +123,6 @@
     font-size: 20px;
   }
 }
-
 .table-wrapper {
   overflow-x: auto;
 }
@@ -159,31 +147,25 @@ th {
 td {
   font-size: 14px;
 }
-
 .instruction {
   max-width: 350px;
   overflow-wrap: anywhere;
 }
-
 .status {
   display: inline-block;
   padding: 5px 10px;
   border-radius: 6px;
   background: #334155;
 }
-
 .status-success {
   color: #4ade80;
 }
-
 .status-danger {
   color: #fca5a5;
 }
-
 .status-pending {
   color: #facc15;
 }
-
 .empty {
   padding: 24px;
   color: #94a3b8;
@@ -209,7 +191,6 @@ td {
     padding: 24px 16px;
   }
 }
-
 .agent-run-panel {
   margin: 1.5rem 0;
   padding: 1.5rem;
@@ -260,22 +241,18 @@ td {
     }
   }
 }
-
 .character-count {
   text-align: right;
   font-size: 0.85rem;
   color: #94a3b8;
 }
-
 .run-success {
   color: #86efac;
   overflow-wrap: anywhere;
 }
-
 .run-error {
   color: #fca5a5;
 }
-
 .run-confirmation {
   margin-top: 1rem;
   padding: 1rem;
@@ -283,13 +260,11 @@ td {
   border-radius: 8px;
   background: #1e293b;
 }
-
 .confirmation-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
-
 .agent-tracking {
   margin: 1rem 0;
   padding: 1.25rem;
@@ -306,7 +281,6 @@ td {
     color: #93c5fd;
   }
 }
-
 .execution-detail-link {
   color: #93c5fd;
   text-decoration: underline;
@@ -321,5 +295,29 @@ td {
     outline: 2px solid #93c5fd;
     outline-offset: 4px;
     border-radius: 2px;
+  }
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.management-link {
+  padding: 10px 16px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: #334155;
+  color: #f8fafc;
+  text-decoration: none;
+  font-size: 14px;
+
+  &:hover {
+    background: #475569;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #38bdf8;
+    outline-offset: 2px;
   }
 }

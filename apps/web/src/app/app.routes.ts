@@ -1,3 +1,4 @@
+import { AgentManagement } from './features/agent-management/agent-management';
 import { Routes } from '@angular/router';
 import { adminGuard } from './core/auth/admin.guard';
 import { Login } from './features/login/login';
@@ -13,6 +14,11 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: Dashboard,
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'dashboard/agents',
+    component: AgentManagement,
     canActivate: [adminGuard],
   },
   {

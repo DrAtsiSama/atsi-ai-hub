@@ -7,6 +7,8 @@ import {
   AgentHistoryResponse,
   AgentJobResponse,
   AgentRunResponse,
+  RegisteredAgent,
+  CreateAgentRequest,
 } from './agents.models';
 
 @Injectable({
@@ -16,6 +18,23 @@ export class AgentsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = '/api/agents';
 
+
+  getAgents(): Observable<RegisteredAgent[]> {
+    return this.http.get<RegisteredAgent[]>(
+      this.apiUrl,
+      { withCredentials: true },
+    );
+  }
+
+  createAgent(
+    agent: CreateAgentRequest,
+  ): Observable<RegisteredAgent> {
+    return this.http.post<RegisteredAgent>(
+      this.apiUrl,
+      agent,
+      { withCredentials: true },
+    );
+  }
 
   runDemo(instruction: string): Observable<AgentRunResponse> {
     return this.http.post<AgentRunResponse>(

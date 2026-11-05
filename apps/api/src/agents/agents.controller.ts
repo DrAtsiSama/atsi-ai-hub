@@ -8,11 +8,25 @@ import {
 } from '@nestjs/common';
 import { AdminAuthGuard } from '../auth/admin-auth.guard.js';
 import { AgentsService } from './agents.service.js';
+import { AgentRegistryService } from './agent-registry.service.js';
 
 @Controller('agents')
 @UseGuards(AdminAuthGuard)
 export class AgentsController {
-  constructor(private readonly agentsService: AgentsService) {}
+  constructor(
+    private readonly agentsService: AgentsService,
+    private readonly agentRegistry: AgentRegistryService,
+  ) {}
+
+  @Get()
+  listAgents() {
+    return this.agentRegistry.findAll();
+  }
+
+  @Post()
+  createAgent(@Body() body: unknown) {
+    return this.agentRegistry.create(body);
+  }
 
   @Post('demo/run')
   runDemo(@Body() body: { instruction?: unknown }) {
