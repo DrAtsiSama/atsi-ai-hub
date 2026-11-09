@@ -1,5 +1,10 @@
 import { Worker } from 'bullmq';
 import { Pool } from 'pg';
+import { agentRunTransitions } from './agent-run-transitions.js';
+import { AgentRunTransitionRejectedError } from './agent-run-transition-error.js';
+import { createTransitionRejectedError } from './agent-run-transition-diagnostic.js';
+import { AgentJobValidationError } from './agent-job-validation-error.js';
+import { selectAgentRunFailureTransition } from './agent-run-failure-policy.js';
 
 const queueName = 'atsi-agent-tasks';
 
@@ -28,23 +33,24 @@ const worker = new Worker(
 
     try {
       if (job.name !== 'demo-agent') {
-        throw new Error(`Type de tâche inconnu : ${job.name}`);
+        throw new AgentJobValidationError(`Type de tâche inconnu : ${job.name}`);
       }
 
       if (typeof instruction !== 'string' || !instruction.trim()) {
-        throw new Error('Instruction invalide');
+        throw new AgentJobValidationError('Instruction invalide');
       }
 
       const started = await database.query(
-        `UPDATE agent_runs
-         SET status = 'running', started_at = NOW()
-         WHERE id = $1
-         RETURNING id`,
+        agentRunTransitions.start,
         [runId],
       );
 
       if (started.rowCount !== 1) {
-        throw new Error(`Exécution PostgreSQL introuvable : ${runId}`);
+        throw await createTransitionRejectedError(
+          database,
+          runId,
+          'queued -> running',
+        );
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -58,35 +64,48 @@ const worker = new Worker(
       };
 
       const completed = await database.query(
-        `UPDATE agent_runs
-         SET status = 'completed',
-             result = $2::jsonb,
-             completed_at = NOW()
-         WHERE id = $1
-         RETURNING id`,
+        agentRunTransitions.complete,
         [runId, JSON.stringify(result)],
       );
 
       if (completed.rowCount !== 1) {
-        throw new Error(`Résultat PostgreSQL non enregistré : ${runId}`);
+        throw await createTransitionRejectedError(
+          database,
+          runId,
+          'running -> completed',
+        );
       }
 
       console.log(`[Agent] Tâche ${job.id} terminée`);
       return result;
     } catch (error) {
+      if (error instanceof AgentRunTransitionRejectedError) {
+        console.warn(
+          `[Agent] Transition refusée pour ${runId} : ${error.message}`,
+        );
+
+        throw error;
+      }
+
       const message = error instanceof Error ? error.message : String(error);
 
-      try {
-        await database.query(
-          `UPDATE agent_runs
-           SET status = 'failed',
-               error_message = $2,
-               completed_at = NOW()
-           WHERE id = $1`,
-          [runId, message],
-        );
-      } catch (databaseError) {
-        console.error('[Agent] Impossible de sauvegarder l’échec', databaseError);
+      const transition = selectAgentRunFailureTransition(error);
+
+      if (transition !== null) {
+        try {
+          const failed = await database.query(
+            transition,
+            [runId, message],
+          );
+
+          if (failed.rowCount !== 1) {
+            console.warn(
+              `[Agent] Échec non enregistré pour ${runId} : transition refusée`,
+            );
+          }
+        } catch (databaseError) {
+          console.error('[Agent] Impossible de sauvegarder l’échec', databaseError);
+        }
       }
 
       throw error;
