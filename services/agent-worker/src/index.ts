@@ -1,3 +1,4 @@
+import { agentWorkerSafetyOptions } from './agent-worker-options.js';
 import { Worker } from 'bullmq';
 import { Pool } from 'pg';
 import { agentRunTransitions } from './agent-run-transitions.js';
@@ -117,7 +118,7 @@ const worker = new Worker(
       port: Number(process.env.REDIS_PORT ?? 6379),
       maxRetriesPerRequest: null,
     },
-    concurrency: 1,
+    ...agentWorkerSafetyOptions,
   },
 );
 
