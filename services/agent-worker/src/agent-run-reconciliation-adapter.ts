@@ -30,10 +30,20 @@ export function parseBullMqJobState(
   return 'unknown';
 }
 
+type BullMqJobReader = {
+  getState: () => Promise<string>;
+};
+
+export type BullMqJobLookup = (
+  queue: Queue,
+  jobId: string,
+) => Promise<BullMqJobReader | null | undefined>;
+
 export async function inspectAgentRunWithServices(
   database: Pick<Pool, 'query'>,
   queue: Queue,
   runId: string,
+  findJob: BullMqJobLookup = Job.fromId,
 ): Promise<AgentRunReconciliationReport> {
   return inspectAgentRun(
     {
@@ -48,7 +58,7 @@ export async function inspectAgentRunWithServices(
     },
     {
       async getJobState(jobId) {
-        const job = await Job.fromId(queue, jobId);
+        const job = await findJob(queue, jobId);
 
         if (job === undefined || job === null) {
           return null;
