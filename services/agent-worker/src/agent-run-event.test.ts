@@ -86,3 +86,21 @@ test('refuse un type inconnu à l’exécution', () => {
     });
   });
 });
+
+test('accepte un message de 2000 caractères', () => {
+  assert.doesNotThrow(() => {
+    validateAgentRunEvent({
+      ...validEvent,
+      message: 'a'.repeat(2000),
+    });
+  });
+});
+
+test('refuse un message de plus de 2000 caractères', () => {
+  assert.throws(() => {
+    validateAgentRunEvent({
+      ...validEvent,
+      message: 'a'.repeat(2001),
+    });
+  });
+});

@@ -63,6 +63,10 @@ export function validateAgentRunEvent(
     throw new Error('Message d’événement vide');
   }
 
+  if (input.message.trim().length > 2000) {
+    throw new Error('Message d’événement trop long');
+  }
+
   if (
     input.stepKey !== undefined &&
     !/^[a-z][a-z0-9-]*$/.test(input.stepKey)
