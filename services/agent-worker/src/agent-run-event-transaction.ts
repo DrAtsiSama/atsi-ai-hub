@@ -60,6 +60,31 @@ export async function executeAgentRunEventTransaction(
     );
   }
 
+  const expectedParameterCount =
+    request.sql === agentRunTransitions.start ? 1 : 2;
+
+  if (request.values.length !== expectedParameterCount) {
+    throw new Error('Nombre de paramètres incorrect');
+  }
+
+  if (
+    expectedParameterCount === 2 &&
+    typeof request.values[1] !== 'string'
+  ) {
+    throw new Error('Paramètre de transition invalide');
+  }
+
+  const expectedLevel =
+    expectedEventType === 'run_failed' ? 'error' : 'info';
+
+  if (request.event.level !== expectedLevel) {
+    throw new Error('Niveau incohérent avec la transition');
+  }
+
+  if (request.event.stepKey !== undefined) {
+    throw new Error('Une transition globale ne possède pas de stepKey');
+  }
+
   const client = await database.connect();
 
   let phase:

@@ -1,11 +1,19 @@
 import { agentWorkerSafetyOptions } from './agent-worker-options.js';
 import { Worker } from 'bullmq';
 import { Pool } from 'pg';
-import { agentRunTransitions } from './agent-run-transitions.js';
+import {
+  startAgentRun,
+  completeAgentRun,
+  failAgentRun,
+} from './agent-run-lifecycle.js';
+import {
+  AgentRunCommitUncertainError,
+} from './agent-run-event-transaction.js';
+import {
+  executeAgentRunStep,
+} from './agent-run-step.js';
 import { AgentRunTransitionRejectedError } from './agent-run-transition-error.js';
-import { createTransitionRejectedError } from './agent-run-transition-diagnostic.js';
 import { AgentJobValidationError } from './agent-job-validation-error.js';
-import { selectAgentRunFailureTransition } from './agent-run-failure-policy.js';
 
 const queueName = 'atsi-agent-tasks';
 
@@ -41,20 +49,18 @@ const worker = new Worker(
         throw new AgentJobValidationError('Instruction invalide');
       }
 
-      const started = await database.query(
-        agentRunTransitions.start,
-        [runId],
+      await startAgentRun(database, runId);
+
+      await executeAgentRunStep(
+        database,
+        runId,
+        'simulate-instruction',
+        async () => {
+          await new Promise(
+            (resolve) => setTimeout(resolve, 1500),
+          );
+        },
       );
-
-      if (started.rowCount !== 1) {
-        throw await createTransitionRejectedError(
-          database,
-          runId,
-          'queued -> running',
-        );
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const result = {
         agent: 'demo-agent',
@@ -64,22 +70,19 @@ const worker = new Worker(
         completedAt: new Date().toISOString(),
       };
 
-      const completed = await database.query(
-        agentRunTransitions.complete,
-        [runId, JSON.stringify(result)],
-      );
-
-      if (completed.rowCount !== 1) {
-        throw await createTransitionRejectedError(
-          database,
-          runId,
-          'running -> completed',
-        );
-      }
+      await completeAgentRun(database, runId, result);
 
       console.log(`[Agent] Tâche ${job.id} terminée`);
       return result;
     } catch (error) {
+      if (error instanceof AgentRunCommitUncertainError) {
+        console.error(
+          `[Agent] COMMIT incertain pour ${runId} : reconciliation necessaire`,
+        );
+
+        throw error;
+      }
+
       if (error instanceof AgentRunTransitionRejectedError) {
         console.warn(
           `[Agent] Transition refusée pour ${runId} : ${error.message}`,
@@ -88,25 +91,30 @@ const worker = new Worker(
         throw error;
       }
 
-      const message = error instanceof Error ? error.message : String(error);
+      try {
+        const failed = await failAgentRun(
+          database,
+          runId,
+          error,
+        );
 
-      const transition = selectAgentRunFailureTransition(error);
-
-      if (transition !== null) {
-        try {
-          const failed = await database.query(
-            transition,
-            [runId, message],
+        if (failed === false) {
+          console.warn(
+            `[Agent] Echec non enregistre pour ${runId} : transition refusee`,
+          );
+        }
+      } catch (databaseError) {
+        if (databaseError instanceof AgentRunCommitUncertainError) {
+          console.error(
+            `[Agent] COMMIT incertain pour ${runId} : reconciliation necessaire`,
           );
 
-          if (failed.rowCount !== 1) {
-            console.warn(
-              `[Agent] Échec non enregistré pour ${runId} : transition refusée`,
-            );
-          }
-        } catch (databaseError) {
-          console.error('[Agent] Impossible de sauvegarder l’échec', databaseError);
+          throw databaseError;
         }
+
+        console.error(
+          `[Agent] Impossible de sauvegarder echec pour ${runId}`,
+        );
       }
 
       throw error;

@@ -33,3 +33,18 @@ test('execution errors use running to failed', () => {
     agentRunTransitions.fail,
   );
 });
+
+test('does not fail a run after an uncertain commit', async () => {
+  const { AgentRunCommitUncertainError } = await import(
+    './agent-run-event-transaction.js'
+  );
+
+  const error = new AgentRunCommitUncertainError(
+    new Error('Connection lost'),
+  );
+
+  assert.equal(
+    selectAgentRunFailureTransition(error),
+    null,
+  );
+});

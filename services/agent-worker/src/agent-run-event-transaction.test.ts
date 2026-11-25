@@ -373,3 +373,77 @@ test('discards connection when BEGIN fails', async () => {
 
   assert.equal(discarded, true);
 });
+
+test('rejects incorrect parameter count', async () => {
+  const pool = {
+    async connect() {
+      assert.fail('Database must not be accessed');
+    },
+  } as unknown as Pick<Pool, 'connect'>;
+
+  await assert.rejects(
+    executeAgentRunEventTransaction(pool, {
+      ...request,
+      values: [request.event.runId, 'unexpected'],
+    }),
+    /Nombre de paramètres incorrect/,
+  );
+});
+
+test('rejects invalid transition parameter', async () => {
+  const pool = {
+    async connect() {
+      assert.fail('Database must not be accessed');
+    },
+  } as unknown as Pick<Pool, 'connect'>;
+
+  await assert.rejects(
+    executeAgentRunEventTransaction(pool, {
+      sql: agentRunTransitions.complete,
+      values: [request.event.runId, 42],
+      event: {
+        ...request.event,
+        eventType: 'run_completed',
+      },
+    }),
+    /Paramètre de transition invalide/,
+  );
+});
+
+test('rejects inconsistent event level', async () => {
+  const pool = {
+    async connect() {
+      assert.fail('Database must not be accessed');
+    },
+  } as unknown as Pick<Pool, 'connect'>;
+
+  await assert.rejects(
+    executeAgentRunEventTransaction(pool, {
+      ...request,
+      event: {
+        ...request.event,
+        level: 'error',
+      },
+    }),
+    /Niveau incohérent/,
+  );
+});
+
+test('rejects step identifier on global transition', async () => {
+  const pool = {
+    async connect() {
+      assert.fail('Database must not be accessed');
+    },
+  } as unknown as Pick<Pool, 'connect'>;
+
+  await assert.rejects(
+    executeAgentRunEventTransaction(pool, {
+      ...request,
+      event: {
+        ...request.event,
+        stepKey: 'invalid-step',
+      },
+    }),
+    /stepKey/,
+  );
+});
