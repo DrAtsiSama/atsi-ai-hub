@@ -275,3 +275,101 @@ test('accepts run_failed for rejection before start', async () => {
   assert.equal(mock.calls.at(-1), 'COMMIT');
   assert.equal(mock.wasReleased(), true);
 });
+
+test('discards connection when rollback fails', async () => {
+  let discarded = false;
+
+  const client = {
+    async query(sql: string) {
+      if (sql === 'BEGIN') {
+        return { rowCount: null, rows: [] };
+      }
+
+      if (sql === 'ROLLBACK') {
+        throw new Error('Rollback failed');
+      }
+
+      throw new Error('Transition failed');
+    },
+
+    release(destroy?: boolean) {
+      discarded = destroy === true;
+    },
+  };
+
+  const pool = {
+    async connect() {
+      return client;
+    },
+  } as unknown as Pick<Pool, 'connect'>;
+
+  await assert.rejects(
+    executeAgentRunEventTransaction(pool, request),
+    /Transition failed/,
+  );
+
+  assert.equal(discarded, true);
+});
+
+test('discards connection when commit is uncertain', async () => {
+  let discarded = false;
+  const calls: string[] = [];
+
+  const client = {
+    async query(sql: string) {
+      calls.push(sql);
+
+      if (sql === 'COMMIT') {
+        throw new Error('Connection lost');
+      }
+
+      return { rowCount: 1, rows: [] };
+    },
+
+    release(destroy?: boolean) {
+      discarded = destroy === true;
+    },
+  };
+
+  const pool = {
+    async connect() {
+      return client;
+    },
+  } as unknown as Pick<Pool, 'connect'>;
+
+  await assert.rejects(
+    executeAgentRunEventTransaction(pool, request),
+    {
+      name: 'AgentRunCommitUncertainError',
+      message: 'COMMIT result unknown',
+    },
+  );
+
+  assert.equal(discarded, true);
+  assert.equal(calls.includes('ROLLBACK'), false);
+});
+
+test('discards connection when BEGIN fails', async () => {
+  let discarded = false;
+
+  const pool = {
+    async connect() {
+      return {
+        async query() {
+          throw new Error('BEGIN failed');
+        },
+
+        release(destroy?: boolean) {
+          discarded = destroy === true;
+        },
+      };
+    },
+  } as unknown as Pick<Pool, 'connect'>;
+
+  await assert.rejects(
+    executeAgentRunEventTransaction(pool, request),
+    /BEGIN failed/,
+  );
+
+  assert.equal(discarded, true);
+});

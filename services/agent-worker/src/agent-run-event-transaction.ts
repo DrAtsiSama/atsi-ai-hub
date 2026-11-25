@@ -12,6 +12,16 @@ import {
   agentRunTransitions,
 } from './agent-run-transitions.js';
 
+export class AgentRunCommitUncertainError extends Error {
+  constructor(cause: unknown) {
+    super(
+      'COMMIT result unknown',
+      { cause },
+    );
+    this.name = 'AgentRunCommitUncertainError';
+  }
+}
+
 export type AgentRunTransitionRequest = {
   sql: string;
   values: unknown[];
@@ -51,11 +61,19 @@ export async function executeAgentRunEventTransaction(
   }
 
   const client = await database.connect();
-  let transactionStarted = false;
+
+  let phase:
+    | 'begin'
+    | 'active'
+    | 'rollback'
+    | 'commit'
+    | 'done' = 'begin';
+
+  let discardConnection = false;
 
   try {
     await client.query('BEGIN');
-    transactionStarted = true;
+    phase = 'active';
 
     const result = await client.query(
       request.sql,
@@ -63,8 +81,9 @@ export async function executeAgentRunEventTransaction(
     );
 
     if (result.rowCount !== 1) {
+      phase = 'rollback';
       await client.query('ROLLBACK');
-      transactionStarted = false;
+      phase = 'done';
       return false;
     }
 
@@ -73,21 +92,29 @@ export async function executeAgentRunEventTransaction(
       request.event,
     );
 
+    phase = 'commit';
     await client.query('COMMIT');
-    transactionStarted = false;
+    phase = 'done';
 
     return true;
   } catch (error) {
-    if (transactionStarted) {
+    if (phase === 'commit') {
+      discardConnection = true;
+      throw new AgentRunCommitUncertainError(error);
+    }
+
+    if (phase === 'active') {
       try {
         await client.query('ROLLBACK');
       } catch {
-        // Conserver l'erreur initiale.
+        discardConnection = true;
       }
+    } else {
+      discardConnection = true;
     }
 
     throw error;
   } finally {
-    client.release();
+    client.release(discardConnection);
   }
 }
